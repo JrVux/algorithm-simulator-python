@@ -117,28 +117,28 @@ input[type=range]{width:100px}
 <div class="algorithm-group">
 <div class="group-title" onclick="tg('sort')">🎨 Sắp xếp</div>
 <div class="group-content active" id="gsort">
-<button class="algorithm-btn" onclick="sel('bubble')">Bubble Sort</button>
-<button class="algorithm-btn" onclick="sel('selection')">Selection Sort</button>
-<button class="algorithm-btn" onclick="sel('insertion')">Insertion Sort</button>
+<button class="algorithm-btn" onclick="sel('bubble',this)">Bubble Sort</button>
+<button class="algorithm-btn" onclick="sel('selection',this)">Selection Sort</button>
+<button class="algorithm-btn" onclick="sel('insertion',this)">Insertion Sort</button>
 </div></div>
 <div class="algorithm-group">
 <div class="group-title" onclick="tg('search')">🔍 Tìm kiếm</div>
 <div class="group-content" id="gsearch">
-<button class="algorithm-btn" onclick="sel('linear')">Linear Search</button>
-<button class="algorithm-btn" onclick="sel('binary')">Binary Search</button>
+<button class="algorithm-btn" onclick="sel('linear',this)">Linear Search</button>
+<button class="algorithm-btn" onclick="sel('binary',this)">Binary Search</button>
 </div></div>
 <div class="algorithm-group">
 <div class="group-title" onclick="tg('rec')">🌳 Đệ quy</div>
 <div class="group-content" id="grec">
-<button class="algorithm-btn" onclick="sel('factorial')">Giai thừa</button>
-<button class="algorithm-btn" onclick="sel('fibonacci')">Fibonacci</button>
-<button class="algorithm-btn" onclick="sel('hanoi')">Tháp Hà Nội</button>
+<button class="algorithm-btn" onclick="sel('factorial',this)">Giai thừa</button>
+<button class="algorithm-btn" onclick="sel('fibonacci',this)">Fibonacci</button>
+<button class="algorithm-btn" onclick="sel('hanoi',this)">Tháp Hà Nội</button>
 </div></div>
 <div class="algorithm-group">
 <div class="group-title" onclick="tg('ds')">⬛ CTDL</div>
 <div class="group-content" id="gds">
-<button class="algorithm-btn" onclick="sel('stack')">Stack</button>
-<button class="algorithm-btn" onclick="sel('queue')">Queue</button>
+<button class="algorithm-btn" onclick="sel('stack',this)">Stack</button>
+<button class="algorithm-btn" onclick="sel('queue',this)">Queue</button>
 </div></div>
 </aside>
 
@@ -575,37 +575,29 @@ function updateTarget(){
 function stackPush(){
   const inp=$('stackVal');if(!inp)return;
   const v=parseInt(inp.value)||0;
-  const newSteps=genStack([{op:'push',val:v}]);
-  steps=steps.concat(newSteps);
-  steps.push({type:'stack',stack:steps[steps.length-1].stack,op:'push',val:v,
-    vars:{top:steps[steps.length-1].stack.length-1,value:v},code:[4,5],msg:`Push(${v})`});
-  curStep=steps.length-1;
-  $('stepDisp').textContent=`${curStep+1}/${steps.length}`;
-  setStep(curStep);
+  const ns=genStack([{op:'push',val:v}]);
+  if(ns.length){steps.push(ns[0]);curStep=steps.length-1;
+    $('stepDisp').textContent=`${curStep+1}/${steps.length}`;setStep(curStep);}
 }
 
 function stackPop(){
-  const newSteps=genStack([{op:'pop'}]);
-  steps=steps.concat(newSteps);
-  curStep=steps.length-1;
-  $('stepDisp').textContent=`${curStep+1}/${steps.length}`;
-  setStep(curStep);
+  const ns=genStack([{op:'pop'}]);
+  if(ns.length&&ns[0].stack){steps.push(ns[0]);curStep=steps.length-1;
+    $('stepDisp').textContent=`${curStep+1}/${steps.length}`;setStep(curStep);}
 }
 
 function queueEnq(){
   const inp=$('queueVal');if(!inp)return;
   const v=parseInt(inp.value)||0;
-  steps=steps.concat(genQueue([{op:'enqueue',val:v}]));
-  curStep=steps.length-1;
-  $('stepDisp').textContent=`${curStep+1}/${steps.length}`;
-  setStep(curStep);
+  const ns=genQueue([{op:'enqueue',val:v}]);
+  if(ns.length){steps.push(ns[0]);curStep=steps.length-1;
+    $('stepDisp').textContent=`${curStep+1}/${steps.length}`;setStep(curStep);}
 }
 
 function queueDeq(){
-  steps=steps.concat(genQueue([{op:'dequeue'}]));
-  curStep=steps.length-1;
-  $('stepDisp').textContent=`${curStep+1}/${steps.length}`;
-  setStep(curStep);
+  const ns=genQueue([{op:'dequeue'}]);
+  if(ns.length){steps.push(ns[0]);curStep=steps.length-1;
+    $('stepDisp').textContent=`${curStep+1}/${steps.length}`;setStep(curStep);}
 }
 
 // ===== RENDER =====
@@ -817,10 +809,11 @@ function updSpd(){
 function toggleTheme(){document.body.classList.toggle('dark-mode')}
 
 // ===== SELECT ALGORITHM =====
-function sel(a){
+function sel(a,el){
   algo=a;
   document.querySelectorAll('.algorithm-btn').forEach(b=>b.classList.remove('active'));
-  if(event&&event.target)event.target.classList.add('active');
+  const btn=el||(event&&event.target);
+  if(btn)btn.classList.add('active');
   genSteps();
 }
 
