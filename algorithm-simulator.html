@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô Phỏng Thuật Toán Python - Lớp 10</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --info: #9b59b6;
+            --light: #ecf0f1;
+            --dark: #1a252f;
+            --text: #333;
+            --code-bg: #1e1e1e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        body.dark-mode {
+            background: #121212;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .card {
+            background: #1e1e1e;
+            border-color: #333;
+        }
+        
+        body.dark-mode .code-block {
+            background: #0d0d0d;
+            color: #d4d4d4;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .control-btn {
+            background: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.1s;
+        }
+        
+        .control-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 1rem auto;
+            padding: 0 1rem;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 1400px) {
+            .main-grid {
+                grid-template-columns: 240px 1fr;
+            }
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+        
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 0.5rem;
+        }
+        
+        .algorithm-group {
+            margin-bottom: 1rem;
+        }
+        
+        .group-title {
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: #e8f4f8;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .group-content {
+            display: none;
+            margin-left: 0.5rem;
+        }
+        
+        .group-content.active {
+            display: block;
+        }
+        
+        .algorithm-btn {
+            display: block;
+            width: 100%;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.3rem;
+            background: white;
+            border: 1px solid #ddd;
+            border-left: 3px solid var(--primary);
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .algorithm-btn:hover {
+            background: #f5f5f5;
+            border-left-color: var(--secondary);
+        }
+        
+        .algorithm-btn.active {
+            background: var(--secondary);
+            color: white;
+            border-left-color: white;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 1000px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .visualization-area {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+        
+        .visualization-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .visualization-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        var.visualization-canvas {
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: var(--code-bg);
+            border-radius: 8px;
+        }
+        
+        .visualization-container {
+            width: 100%;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .bar-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            margin: 1rem 0;
+            min-height: 150px;
+        }
+        
+        .bar {
+            width: 40px;
+            min-height: 20px;
+            background: var(--secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 5px 0;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .bar .bar-value {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .bar .bar-label {
+            font-size: 0.75rem;
+            color: white;
+        }
+        
+        .bar.comparing {
+            background: var(--warning);
+        }
+        
+        .bar.swapping {
+            background: var(--accent);
+        }
+        
+        .bar.sorted {
+            background: var(--success);
+        }
+        
+        .bar.found {
+            background: var(--info);
+        }
+        
+        .bar.dimmed {
+            opacity: 0.3;
+        }
+        
+        .binary-search-info {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .binary-index {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .binary-marker {
+            padding: 0.3rem 0.8rem;
+            background: var(--INFO);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .tree-container {
+            width: 100%;
+            min-height: 200px;
+            overflow-x: auto;
+            padding: 1rem 0;
+        }
+        
+        .call-tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .node {
+            padding: 0.5rem 1rem;
+            background: var(--secondary);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            position: relative;
+        }
+        
+        .node.active {
+            background: var(--accent);
+            box-shadow: 0 0 15px var(--accent);
+        }
+        
+        .node.completed {
+            background: var(--success);
+        }
+        
+        .node-parent-line {
+            width: 2px;
+            height: 20px;
+            background: var(--text);
+        }
+        
+        .hanoi-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            min-height: 200px;
+            margin: 1rem 0;
+        }
+        
+        .pole {
+            width: 120px;
+            text-align: center;
+        }
+        
+        .pole-container {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            gap: 4px;
+            min-height: 150px;
+            position: relative;
+        }
+        
+        .pole-label {
+            margin-top: 0.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .disco {
+            height: 25px;
+            flex-shrink: 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .disco.moving {
+            transition: all 0.5s ease-in-out;
+        }
+        
+        .disco.labeled {
+            width: 30px;
+        }
+        
+        .stack-container {
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 1rem 0;
+        }
+        
+        .stack {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 4px;
+        }
+        
+        .stack-block {
+            width: 100px;
+            height: 40px;
+            background: var(--secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .stack-block .value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .stack-block .label {
+            font-size: 0.7rem;
+            color: white;
+        }
+        
+        .queue-container {
+            min-height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 1rem 0;
+        }
+        
+        .queue {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: var(--code-bg);
+            border-radius: 8px;
+            min-width: 300px;
+        }
+        
+        .queue-item {
+            width: 50px;
+            height: 50px;
+            background: var(--secondary);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+        
+        .queue-item .index {
+            position: absolute;
+            top: -20px;
+            font-size: 0.75rem;
+            color: var(--text);
+        }
+        
+        .queue-fade {
+            opacity: 0.2;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .panel-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 0.3rem;
+        }
+        
+        .variable-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .variable-table th {
+            text-align: left;
+            padding: 0.4rem;
+            color: var(--primary);
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .variable-table td {
+            padding: 0.4rem;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .code-panel {
+            grid-row: 1 / -1;
+        }
+        
+        .code-block {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+        }
+        
+        .code-line {
+            padding: 0.3rem 0.5rem;
+            display: block;
+        }
+        
+        .code-line.active {
+            background: rgba(255, 236, 39, 0.3);
+            border-left: 3px solid #ffc107;
+        }
+        
+        .control-bar {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .control-label {
+            font-weight: 500;
+            color: var(--primary);
+        }
+        
+        .control-btn.secondary {
+            background: var(--light);
+            border: 1px solid #ccc;
+        }
+        
+        .control-btn.success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .control-btn.danger {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .speed-control, .step-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        input[type="range"] {
+            width: 120px;
+        }
+        
+        .number-display {
+            font-weight: bold;
+            color: var(--secondary);
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        input[type="text"], input[type="number"] {
+            padding: 0.4rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            min-width: 150px;
+        }
+        
+        .status-message {
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            border-radius: 4px;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .status-message.info {
+            background: #e8f4f8;
+            color: var(--primary);
+        }
+        
+        .status-message.success {
+            background: #d4edda;
+            color: var(--success);
+        }
+        
+        .status-message.error {
+            background: #f8d7da;
+            color: var(--accent);
+        }
+        
+        @media (min-width: 1400px) {
+            .main-grid {
+                grid-template-columns: 300px 1fr;
+            }
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
+            .code-panel {
+                grid-row: auto;
+                grid-column: 2 / 3;
+            }
+            .control-bar {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>🧮 Mô Phỏng Thuật Toán Python - Lớp 10</h1>
+            <div class="controls">
+                <button class="control-btn secondary" onclick="toggleTheme()">🌓 Đổi giao diện</button>
+                <button class="control-btn secondary" onclick="generateRandomArray(8)">🎲 Mảng ngẫu nhiên (8)</button>
+                <button class="control-btn secondary" onclick="generateRandomArray(10)">🎲 Mảng ngẫu nhiên (10)</button>
+                <button class="control-btn secondary" onclick="generateRandomArray(15)">🎲 Mảng ngẫu nhiên (15)</button>
+                <button class="control-btn secondary" onclick="generateCustomArray()">📝 Nhập mảng</button>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-grid">
+            <aside class="sidebar">
+                <div class="sidebar-title">📦 Chọn thuật toán</div>
+                
+                <div class="algorithm-group">
+                    <div class="group-title" onclick="toggleGroup('sort')">🎨 Nhóm Sắp xếp</div>
+                    <div class="group-content active" id="group-sort">
+                        <button class="algorithm-btn" onclick="selectAlgorithm('bubble')">Bubble Sort</button>
+                        <button class="algorithm-btn" onclick="selectAlgorithm('selection')">Selection Sort</button>
+                        <button class="algorithm-btn" onclick="selectAlgorithm('insertion')">Insertion Sort</button>
+                    </div>
+                </div>
+                
+                <div class="algorithm-group">
+                    <div class="group-title" onclick="toggleGroup('search')">🔍 Nhóm Tìm kiếm</div>
+                    <div class="group-content" id="group-search">
+                        <button class="algorithm-btn" onclick="selectAlgorithm('linear_search')">Linear Search</button>
+                        <button class="algorithm-btn" onclick="selectAlgorithm('binary_search')">Binary Search</button>
+                    </div>
+                </div>
+                
+                <div class="algorithm-group">
+                    <div class="group-title" onclick="toggleGroup('recursive')">🌳 Nhóm Đệ quy</div>
+                    <div class="group-content" id="group-recursive">
+                        <button class="algorithm-btn" onclick="selectAlgorithm('factorial')">Giai thừa (Factorial)</button>
+                        <button class="algorithm-btn" onclick="selectAlgorithm('fibonacci')">Fibonacci</button>
+                        <button class="algorithm-btn" onclick="selectAlgorithm('hanoi')">Tháp Hà Nội</button>
+                    </div>
+                </div>
+                
+                <div class="algorithm-group">
+                    <div class="group-title" onclick="toggleGroup('structure')">⬛ Cấu trúc dữ liệu</div>
+                    <div class="group-content" id="group-structure">
+                        <button class="algorithm-btn" onclick="selectAlgorithm('stack')">Stack (Push/Pop)</button>
+                        <button class="algorithm-btn" onclick="selectAlgorithm('queue')">Queue (Enqueue/Dequeue)</button>
+                    </div>
+                </div>
+            </aside>
+            
+            <div style="grid-column: 2;">
+                <div class="control-bar">
+                    <div class="control-group">
+                        <button class="control-btn success" onclick="start()" id="btn-play">▶️ Play</button>
+                        <button class="control-btn secondary" onclick="pause()" id="btn-pause" disabled>⏸️ Pause</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <button class="control-btn" onclick="stepForward()">⏭️ Tung bước</button>
+                        <button class="control-btn secondary" onclick="stepBack()" id="btn-step-back">⏪ Lùi bước</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <span class="control-label">Gia tốc:</span>
+                        <input type="range" id="speed" min="100" max="2000" value="800" onchange="updateSpeed()">
+                    </div>
+                    
+                    <div class="control-group">
+                        <span class="control-label">Tốc độ:</span>
+                        <span class="number-display" id="speed-value" style="min-width: 60px;">800ms</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <span class="control-label">Bước:</span>
+                        <span class="number-display" id="step-display" style="min-width: 80px;">0 / 0</span>
+                    </div>
+                    
+                    <div class="control-group input-group">
+                        <input type="range" id="skip-slider" min="0" max="100" value="0" onchange="updateSkipSlider()">
+                        <span class="control-label">Nhảy đến:</span>
+                        <span class="number-display" id="skip-display" style="min-width: 60px;">0%</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <button class="control-btn danger" onclick="reset()">🔄 Reset</button>
+                    </div>
+                </div>
+                
+                <div class="main-content">
+                    <div class="visualization-area">
+                        <div class="visualization-header">
+                            <div class="visualization-title" id="visualization-title">Hình ảnh trực quan hóa</div>
+                        </div>
+                        <div class="status-message info" id="status-message">Chọn một thuật toán để bắt đầu</div>
+                        <var class="visualization-canvas" id="visualization-canvas">
+                            <span style="color: white; text-align: center;">Chọn thuật toán từ menu bên trái</span>
+                        </var>
+                    </div>
+                    
+                    <div class="panel code-panel">
+                        <div class="panel-title">📝 Code Python</div>
+                        <div class="code-block" id="code-display">
+                            <pre><span style="color: #d4d4d4">// Chọn thuật toán từ menu bên trái để xem code</span></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="panel">
+                        <div class="panel-title">📊 Biến & Tham số</div>
+                        <table class="variable-table" id="variable-table">
+                            <thead>
+                                <tr>
+                                    <th>Tên biến</th>
+                                    <th>Giá trị</th>
+                                </tr>
+                            </thead>
+                            <tbody id="variable-tbody">
+                                <tr><td colspan="2" style="text-align: center; color: #666;">Chưa có biểu thức</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentAlgorithm = null;
+        let allSteps = [];
+        let currentStep = -1;
+        let isPlaying = false;
+        let playInterval = null;
+        let animationSpeed = 800;
+        let currentArray = [];
+        
+        const algorithms = {
+            // Nhóm sắp xếp
+            bubble: {
+                name: 'Bubble Sort',
+                group: 'sort',
+                generateSteps: bubbleSort
+            },
+            selection: {
+                name: 'Selection Sort',
+                group: 'sort',
+                generateSteps: selectionSort
+            },
+            insertion: {
+                name: 'Insertion Sort',
+                group: 'sort',
+                generateSteps: insertionSort
+            },
+            linear_search: {
+                name: 'Linear Search',
+                group: 'search',
+                generateSteps: linearSearch
+            },
+            binary_search: {
+                name: 'Binary Search',
+                group: 'search',
+                generateSteps: binarySearch
+            },
+            factorial: {
+                name: 'Giai thừa (Factorial)',
+                group: 'recursive',
+                generateSteps: factorial
+            },
+            fibonacci: {
+                name: 'Fibonacci',
+                group: 'recursive',
+                generateSteps: fibonacci
+            },
+            hanoi: {
+                name: 'Tháp Hà Nội',
+                group: 'recursive',
+                generateSteps: hanoi
+            },
+            stack: {
+                name: 'Stack (Push/Pop)',
+                group: 'structure',
+                generateSteps: stackOperations
+            },
+            queue: {
+                name: 'Queue (Enqueue/Dequeue)',
+                group: 'structure',
+                generateSteps: queueOperations
+            }
+        };
+        
+        const codeTemplates = {
+            bubble: `def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n - 1):
+        for j in range(n - i - 1):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+            yield arr, i, j`,
+            
+            selection: `def selection_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        min_idx = i
+        for j in range(i + 1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+        yield arr, i, min_idx`,
+            
+            insertion: `def insertion_sort(arr):
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i - 1
+        while j >= 0 and key < arr[j]:
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = key
+        yield arr, i, j`,
+            
+            linear_search: `def linear_search(arr, target):
+    for i in range(len(arr)):
+        if arr[i] == target:
+            n = i
+            return n
+    vf = "Không tìm thấy"
+    return vf`,
+            
+            binary_search: `def binary_search(arr, target):
+    low = 0
+    high = len(arr) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if arr[mid] == target:
+            nf = mid
+            return nf
+        elif arr[mid] < target:
+            high = mid - 1
+        else:
+            low = mid + 1
+    vf = "Không tìm thấy"
+    return vf`,
+            
+            factorial: `def factorial(n):
+    if n == 0 or n == 1:
+        return 1
+    result = n * factorial(n - 1)
+    return result`,
+            
+            fibonacci: `def fibonacci(n):
+    if n == 0:
+        return 0
+    elif n == 1:
+        return 1
+    else:
+        return fibonacci(n - 1) + fibonacci(n - 2)`,
+            
+            hanoi: `def hanoi(n, from_pole, to_pole, aux_pole):
+    if n == 1:
+        yield from_pole, to_pole
+        return
+    yield hanoi(n - 1, from_pole, aux_pole, to_pole)
+    yield from_pole, to_pole
+    yield hanoi(n - 1, aux_pole, to_pole, from_pole)`,
+            
+            stack: `class Stack:
+    def __init__(self):
+        self.items = []
+    def push(self, item):
+        self.items.append(item)
+        yield self.items
+    def pop(self):
+        item = self.items.pop()
+        yield self.items, item`,
+            
+            queue: `class Queue:
+    def __init__(self):
+        self.items = []
+    def enqueue(self, item):
+        self.items.append(item)
+        yield self.items, item
+    def dequeue(self):
+        item = self.items.pop(0)
+        yield self.items, item`
+        };
+        
+        function toggleGroup(group) {
+            const content = document.getElementById('group-' + group);
+            content.classList.toggle('active');
+        }
+        
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            reset();
+            
+            document.querySelectorAll('.algorithm-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const algoData = algorithms[algo];
+            document.getElementById('visualization-title').textContent = algoData.name;
+            document.getElementById('code-display').innerHTML = `<pre style="color: #d4d4d4">${codeTemplates[algo]}</pre>`;
+            
+            generateStepsForAlgorithm();
+        }
+        
+        function generateStepsForAlgorithm() {
+            if (!currentAlgorithm) return;
+            
+            generateRandomArray(8);
+            allSteps = [];
+            
+            if (currentAlgorithm === 'factorial') {
+                for (let i = 1; i <= 8; i++) {
+                    allSteps.push({
+                        arr: [i],
+                        variables: { n: i, result: factorialLoop(i) },
+                        activeLines: [2],
+                        message: `factorial(${i}) được gọi`
+                    });
+                }
+                allSteps.push({
+                    arr: [],
+                    variables: { n: 0, result: factorialLoop(0) },
+                    activeLines: [2],
+                    message: 'Kết quả giai thừa = 1'
+                });
+            } else if (currentAlgorithm === 'fibonacci') {
+                const series = generateFibonacci(15);
+                for (let i = 0; i < series.length && i <= 10; i++) {
+                    allSteps.push({
+                        arr: [i],
+                        variables: { n: i, result: series[i] },
+                        activeLines: [2],
+                        message: `fibonacci(${i}) = ${series[i]}`
+                    });
+                }
+            } else if (currentAlgorithm === 'hanoi') {
+                const hanoiSteps = generateHanoi(4);
+                for (let i = 0; i < hanoiSteps.length; i++) {
+                    allSteps.push({
+                        arr: hanoiSteps[i].slice().reverse(),
+                        variables: { 
+                            n: hanoiSteps[i].length,
+                            from_pole: hanoiSteps[i].length ? hanoiSteps[i].length % 3 || 3 : 0,
+                            to_pole: hanoiSteps[i].length ? (hanoiSteps[i].length * 2) % 3 + 1 : 0,
+                            aux_pole: hanoiSteps[i].length ? 3 : 0
+                        },
+                        activeLines: [2],
+                        message: `Di chuyển đĩa ${hanoiSteps[i].length} từ rô 1 đến rô 3`
+                    });
+                }
+            } else if (currentAlgorithm === 'stack') {
+                const stackActions = [
+                    { action: 'push', value: 5 },
+                    { action: 'push', value: 3 },
+                    { action: 'push', value: 8 },
+                    { action: 'push', value: 1 },
+                    { action: 'pop' },
+                    { action: 'pop' },
+                    { action: 'push', value: 7 },
+                    { action: 'push', value: 4 },
+                    { action: 'pop' }
+                ];
+                
+                let stack = [];
+                stackActions.forEach(action => {
+                    if (action.action === 'push') {
+                        stack.push(action.value);
+                        allSteps.push({
+                            stack: [...stack],
+                            variables: { action: action.action, value: action.value },
+                            activeLines: [5, 6],
+                            message: `Push ${action.value}`
+                        });
+                    } else if (action.action === 'pop') {
+                        const item = stack.pop();
+                        allSteps.push({
+                            stack: [...stack],
+                            variables: { action: action.action, value: item },
+                            activeLines: [8, 9],
+                            message: `Pop ${item}`
+                        });
+                    }
+                });
+            } else if (currentAlgorithm === 'queue') {
+                const queueActions = [
+                    { action: 'enqueue', value: 1 },
+                    { action: 'enqueue', value: 2 },
+                    { action: 'enqueue', value: 3 },
+                    { action: 'dequeue' },
+                    { action: 'enqueue', value: 4 },
+                    { action: 'enqueue', value: 5 },
+                    { action: 'dequeue' }
+                ];
+                
+                let queue = [];
+                queueActions.forEach(action => {
+                    if (action.action === 'enqueue') {
+                        queue.push(action.value);
+                        allSteps.push({
+                            queue: [...queue],
+                            variables: { action: action.action, value: action.value },
+                            activeLines: [6, 7],
+                            message: `Enqueue ${action.value}`
+                        });
+                    } else if (action.action === 'dequeue') {
+                        const item = queue.shift();
+                        allSteps.push({
+                            queue: [...queue],
+                            variables: { action: action.action, value: item },
+                            activeLines: [9, 10],
+                            message: `Dequeue ${item}`
+                        });
+                    }
+                });
+            } else {
+                allSteps = algorithms[currentAlgorithm].generateSteps(currentArray);
+            }
+            
+            document.getElementById('step-display').textContent = `0 / ${allSteps.length}`;
+            document.getElementById('skip-slider').max = allSteps.length - 1;
+            
+            setCurrentStep(0);
+        }
+        
+        function factorialLoop(n) {
+            let result = 1;
+            for (let i = 2; i <= n; i++) result *= i;
+            return result;
+        }
+        
+        function generateFibonacci(n) {
+            let fib = [0, 1];
+            for (let i = 2; i < n; i++) {
+                fib[i] = fib[i - 1] + fib[i - 2];
+            }
+            return fib;
+        }
+        
+        function generateHanoi(n) {
+            let moves = [];
+            
+            function hanoi(n, from, to, aux) {
+                if (n === 1) {
+                    moves.push([from]);
+                } else {
+                    hanoi(n - 1, from, aux, to);
+                    moves.push([from, n]);
+                    hanoi(n - 1, aux, to, from);
+                }
+            }
+            
+            hanoi(n, 1, 3, 2);
+            return moves;
+        }
+        
+        function bubbleSort(arr) {
+            let steps = [];
+            let n = arr.length;
+            for (let i = 0; i < n - 1; i++) {
+                for (let j = 0; j < n - i - 1; j++) {
+                    steps.push({
+                        arr: [...arr],
+                        indices: [j, j + 1],
+                        variables: { i: i + 1, j: j + 1 },
+                        activeLines: [3, 4],
+                        message: `So sánh arr[${j}] = ${arr[j]} với arr[${j + 1}] = ${arr[j + 1]}`
+                    });
+                    
+                    if (arr[j] > arr[j + 1]) {
+                        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+                        steps.push({
+                            arr: [...arr],
+                            indices: [j, j + 1],
+                            variables: { i: i + 1, j: j + 1 },
+                            activeLines: [5],
+                            message: `Hoán đổi arr[${j}] và arr[${j + 1}]`
+                        });
+                    }
+                }
+                steps.push({
+                    arr: [...arr],
+                    sorted: [...Array(i + 1).keys()].reverse(),
+                    activeLines: [3],
+                    message: `Bước ${i + 1} hoàn tất, ${i + 1} phần tử đã ở vị trí đúng`
+                });
+            }
+            steps.push({
+                arr: [...arr],
+                sorted: [...Array(n).keys()],
+                variables: {},
+                activeLines: [],
+                message: 'Mảng đã được sắp xếp hoàn toàn!'
+            });
+            return steps;
+        }
+        
+        function selectionSort(arr) {
+            let steps = [];
+            let n = arr.length;
+            for (let i = 0; i < n; i++) {
+                let minIdx = i;
+                for (let j = i + 1; j < n; j++) {
+                    steps.push({
+                        arr: [...arr],
+                        comparing: [minIdx],
+                        currentSelect: [j],
+                        indices: [minIdx, j],
+                        variables: { i: i + 1, j: j + 1, min_idx: minIdx + 1 },
+                        activeLines: [5, 6],
+                        message: `So sánh arr[${j}] = ${arr[j]} với arr[min_idx] = ${arr[minIdx]}`
+                    });
+                    
+                    if (arr[j] < arr[minIdx]) {
+                        minIdx = j;
+                    }
+                }
+                
+                if (minIdx !== i) {
+                    [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+                    steps.push({
+                        arr: [...arr],
+                        indices: [i, minIdx],
+                        variables: { i: i + 1, j: minIdx + 1, min_idx: minIdx + 1 },
+                        activeLines: [8],
+                        message: `Hoán đổi arr[${i}] = ${arr[i]} với arr[${minIdx}] = ${arr[minIdx]}`
+                    });
+                }
+                
+                steps.push({
+                    arr: [...arr],
+                    sorted: [...Array(i + 1).keys()].reverse(),
+                    activeLines: [4],
+                    message: `Phần tử nhỏ nhất là ${arr[i]}, đã đưa vào vị trí index ${i}`
+                });
+            }
+            steps.push({
+                arr: [...arr],
+                sorted: [...Array(n).keys()],
+                variables: {},
+                activeLines: [],
+                message: 'Mảng đã được sắp xếp hoàn tất!'
+            });
+            return steps;
+        }
+        
+        function insertionSort(arr) {
+            let steps = [];
+            let n = arr.length;
+            
+            steps.push({
+                arr: [arr[0]],
+                variables: { i: 1 },
+                activeLines: [4],
+                message: `i = 1, bắt đầu chèn phần tử arr[1] = ${arr[1]}`
+            });
+            
+            for (let i = 1; i < n; i++) {
+                let key = arr[i];
+                let j = i - 1;
+                
+                steps.push({
+                    arr: [...arr],
+                    variables: { i: i + 1, j: j + 1, key: key },
+                    activeLines: [5],
+                    message: `key = arr[${i}] = ${key}, j = ${j}`
+                });
+                
+                while (j >= 0 && arr[j] > key) {
+                    steps.push({
+                        arr: [...arr],
+                        comparing: [j],
+                        variables: { i: i + 1, j: j + 1, key: key },
+                        activeLines: [6, 7],
+                        message: `arr[${j}] = ${arr[j]} > ${key}, di chuyển ${arr[j]} sang phải`
+                    });
+                    arr[j + 1] = arr[j];
+                    steps.push({
+                        arr: [...arr],
+                        variables: { i: i + 1, j: j, key: key },
+                        activeLines: [8],
+                        message: `arr[${j + 1}] = arr[${j}] = ${arr[j]}`
+                    });
+                    j--;
+                }
+                
+                arr[j + 1] = key;
+                steps.push({
+                    arr: [...arr],
+                    variables: { i: i + 1, j: j + 1, key: key },
+                    activeLines: [9],
+                    message: `arr[${j + 1}] = ${key}`
+                });
+                
+                steps.push({
+                    arr: [...arr],
+                    sorted: [...Array(i + 1).keys()].reverse(),
+                    activeLines: [3],
+                    message: `Bước ${i} hoàn, phần tử 0..${i} đã được sắp xếp`
+                });
+            }
+            steps.push({
+                arr: [...arr],
+                sorted: [...Array(n).keys()],
+                variables: {},
+                activeLines: [],
+                message: 'Mảng đã được sắp xếp hoàn tất!'
+            });
+            return steps;
+        }
+        
+        function linearSearch(arr) {
+            let steps = [];
+            
+            for (let i = 0; i < arr.length; i++) {
+                steps.push({
+                    arr: [...arr],
+                    comparing: [i],
+                    indices: [i],
+                    variables: { i: i + 1 },
+                    activeLines: [3],
+                    message: `So sánh arr[${i}] = ${arr[i]} với target = 53`
+                });
+                
+                if (arr[i] === 53) {
+                    if (i === arr.length - 1) {
+                        steps.push({
+                            arr: [...arr],
+                            found: [i],
+                            variables: { n: i },
+                            activeLines: [4, 5],
+                            message: `Tìm thấy 53 tại vị trí index ${i}!`
+                        });
+                    } else {
+                        steps.push({
+                            arr: [...arr],
+                            found: [i],
+                            variables: { n: i },
+                            activeLines: [4],
+                            message: `Tìm thấy 53 tại vị trí index ${i}!`
+                        });
+                        steps.push({
+                            arr: [...arr],
+                            variables: {},
+                            activeLines: [14],
+                            message: 'Không tìm thấy 53 trong mảng'
+                        });
+                    }
+                }
+            }
+            steps.push({
+                arr: [...arr],
+                variables: {},
+                activeLines: [],
+                message: 'Kết thúc tìm kiếm'
+            });
+            return steps;
+        }
+        
+        function binarySearch(arr) {
+            let steps = [];
+            let target = 53;
+            arr.sort((a, b) => a - b);
+            
+            let low = 0;
+            let high = arr.length - 1;
+            
+            steps.push({
+                arr: [...arr],
+                variables: { low: low + 1, high: high + 1 },
+                activeLines: [3, 4],
+                message: `Tìm kiếm ${target} trong mảng, low = ${low}, high = ${high}`
+            });
+            
+            while (low <= high) {
+                let mid = Math.floor((low + high) / 2);
+                
+                steps.push({
+                    arr: [...arr],
+                    comparing: [low, mid, high],
+                    indices: [low, mid, high],
+                    variables: { low: low + 1, high: high + 1, mid: mid + 1 },
+                    activeLines: [5, 6],
+                    message: `mid = ${mid}, arr[mid] = ${arr[mid]}`
+                });
+                
+                if (arr[mid] === target) {
+                    steps.push({
+                        arr: [...arr],
+                        dimmed: [...Array(arr.length).keys()].filter(i => i !== low && i !== mid && i !== high),
+                        found: [mid],
+                        variables: { nf: mid },
+                        activeLines: [8, 9],
+                        message: `Tìm thấy ${target} tại vị trí index ${mid}!`
+                    });
+                } else if (arr[mid] < target) {
+                    steps.push({
+                        arr: [...arr],
+                        dimmed: [...Array(arr.length).keys()].filter(i => i <= mid),
+                        comparing: [mid],
+                        indices: [mid],
+                        variables: { low: mid + 1, high: high + 1, mid: mid + 1 },
+                        activeLines: [10, 12, 13],
+                        message: `arr[mid] = ${arr[mid]} < ${target}, loại nửa bên trái`
+                    });
+                    low = mid + 1;
+                } else {
+                    steps.push({
+                        arr: [...arr],
+                        dimmed: [...Array(arr.length).keys()].filter(i => i >= mid),
+                        comparing: [mid],
+                        indices: [mid],
+                        variables: { low: low + 1, high: mid - 1, mid: mid + 1 },
+                        activeLines: [11, 12, 13],
+                        message: `arr[mid] = ${arr[mid]} > ${target}, loại nửa bên phải`
+                    });
+                    high = mid - 1;
+                }
+            }
+            
+            if (!steps.find(s => s.found)) {
+                steps.push({
+                    arr: [...arr],
+                    variables: {},
+                    activeLines: [16],
+                    message: `${target} không có trong mảng`
+                });
+            }
+            
+            return steps;
+        }
+        
+        function stackOperations() {
+            defaultStackOperations();
+            return allSteps;
+        }
+        
+        function queueOperations() {
+            defaultQueueOperations();
+            return allSteps;
+        }
+        
+        function defaultStackOperations() {
+            allSteps = [];
+            const stack = [5, 3, 8, 1];
+            
+            stack.forEach((val, idx) => {
+                const current = [...stack];
+                const newStack = [...stack];
+                const action = idx === stack.length - 1 ? 'pop' : 'push';
+                
+                allSteps.push({
+                    stack: action === 'push' ? [...current, val] : current,
+                    variables: { action: action, value: action === 'push' ? val : current[current.length - 1] },
+                    activeLines: [5, 6],
+                    message: action === 'push' ? `Push ${val}` : `Pop ${current[current.length - 1]}`
+                });
+            });
+            
+            allSteps.push({
+                stack: [],
+                variables: {},
+                activeLines: [],
+                message: 'Stack rỗng'
+            });
+        }
+        
+        function defaultQueueOperations() {
+            allSteps = [];
+            const queue = [1, 2, 3, 4, 5];
+            
+            queue.forEach((val, idx) => {
+                let action;
+                if (idx < 2) action = 'enqueue';
+                else if (idx <= 4) action = 'dequeue';
+                else action = 'enqueue';
+                
+                const newQueue = action === 'enqueue' 
+                    ? [...queue, val] 
+                    : [...queue.slice(1), ''];
+                
+                allSteps.push({
+                    queue: newQueue,
+                    variables: { action: action, value: action === 'enqueue' ? val : queue[0] },
+                    activeLines: [6, 7],
+                    message: action === 'enqueue' ? `Enqueue ${val}` : `Dequeue ${queue[0]}`
+                });
+            });
+        }
+        
+        function setCurrentStep(step) {
+            currentStep = step;
+            const stepData = allSteps[step];
+            
+            if (!stepData) return;
+            
+            document.getElementById('step-display').textContent = `${step} / ${allSteps.length}`;
+            document.getElementById('skip-slider').value = step;
+            document.getElementById('skip-display').textContent = `${Math.round((step / (allSteps.length - 1)) * 100)}%`;
+            
+            document.getElementById('status-message').textContent = stepData.message || '';
+            document.getElementById('status-message').className = 'status-message info';
+            
+            renderVariableTable(stepData.variables);
+            highlightCode(stepData.activeLines);
+            renderVisualization(stepData);
+        }
+        
+        function renderVariableTable(vars) {
+            const tbody = document.getElementById('variable-tbody');
+            tbody.innerHTML = '';
+            
+            if (!vars || Object.keys(vars).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; color: #666;">Chưa có biến</td></tr>';
+                return;
+            }
+            
+            for (const [key, value] of Object.entries(vars)) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${key}</td><td>${value}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+        
+        function highlightCode(lineNumbers) {
+            const lines = document.querySelectorAll('.code-line');
+            const pre = document.getElementById('code-display').querySelector('pre');
+            
+            if (!pre) return;
+            
+            lines.forEach(line => line.classList.remove('active'));
+            
+            if (!lineNumbers || lineNumbers.length === 0) return;
+            
+            lineNumbers.forEach(lineNum => {
+                if (lines[lineNum - 1]) {
+                    lines[lineNum - 1].classList.add('active');
+                    lines[lineNum - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+        
+        function renderVisualization(stepData) {
+            const canvas = document.getElementById('visualization-canvas');
+            
+            if (stepData.stack) {
+                canvas.innerHTML = renderStack(stepData.stack, stepData.variables);
+            } else if (stepData.queue) {
+                canvas.innerHTML = renderQueue(stepData.queue, stepData.variables);
+            } else if (stepData.found) {
+                canvas.innerHTML = renderBarChart(stepData.arr, stepData.dimmed, stepData.found, stepData.comparing);
+            } else {
+                canvas.innerHTML = renderBarChart(stepData.arr, stepData.dimmed, stepData.sorted, stepData.comparing);
+            }
+        }
+        
+        function renderBarChart(arr, dimmed = [], sorted = [], comparing = []) {
+            if (!arr || arr.length === 0) {
+                return '<p style="color: #666; text-align: center;">Không có dữ liệu</p>';
+            }
+            
+            const bars = arr.map((val, idx) => {
+                let classes = [];
+                if (dimmed.includes(idx)) classes.push('dimmed');
+                if (sorted.includes(idx)) classes.push('sorted');
+                if (comparing.includes(idx)) classes.push('comparing');
+                
+                let annotation = [];
+                if (idx === 0 && currentAlgorithm === 'binary_search') {
+                    annotation.push(`<div class="binary-marker" style="margin-top: 5px;">low=${dimmed.indexOf(idx) >= 0 ? hidden : 0}</div>`);
+                }
+                if (idx === arr.length - 1 && currentAlgorithm === 'binary_search') {
+                   annotation.push(`<div class="binary-marker" style="margin-top: 5px;">high</div>`);
+                }
+                
+                return `
+                    <div class="bar ${classes.join(' ')}" style="height: ${Math.min(250, val * 20)}px;">
+                        <div class="bar-value">${val}</div>
+                        <div class="bar-label">[${idx}]</div>
+                        ${annotation.join('')}
+                    </div>
+                `;
+            }).join('');
+            
+            return `
+                <div class="visualization-container">
+                    <div class="bar-container">
+                        ${bars}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderStack(stack, variables) {
+            const height = 200;
+            const blocks = stack.map((val, idx) => {
+                const pos = idx * 35;
+                return `
+                    <div class="stack-block" style="margin-bottom: ${idx > 0 ? 2 : 0}px; z-index: ${idx}; animation: slideIn 0.3s;">
+                        <div class="value">${val}</div>
+                        <div class="label">${val}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            return `
+                <div class="visualization-container">
+                    <div style="font-weight: 600; color: var(--secondary); margin-bottom: 1rem;">Stack</div>
+                    ${blocks}
+                </div>
+            `;
+        }
+        
+        function renderQueue(queue, variables) {
+            const items = queue.map((val, idx) => {
+                if (val === '') {
+                    return `<div class="queue-item queue-fade">er</div>`;
+                }
+                return `
+                    <div class="queue-item">
+                        <span class="index">${idx}</span>
+                        ${val}
+                    </div>
+                `;
+            }).join('');
+            
+            return `
+                <div class="visualization-container">
+                    <div style="font-weight: 600; color: var(--secondary); margin-bottom: 1rem;">Queue</div>
+                    <div class="queue">
+                        ${items}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateSpeed() {
+            animationSpeed = 2000 - parseInt(document.getElementById('speed').value);
+            document.getElementById('speed-value').textContent = `${animationSpeed}ms`;
+        }
+        
+        function updateSkipSlider() {
+            const skipValue = parseInt(document.getElementById('skip-slider').value);
+            document.getElementById('skip-display').textContent = `${skipValue} bước`;
+        }
+        
+        function start() {
+            if (isPlaying || currentStep >= allSteps.length - 1) {
+                pause();
+                return;
+            }
+            
+            isPlaying = true;
+            document.getElementById('btn-play').textContent = '⏸️ Pause';
+            document.getElementById('btn-pause').disabled = false;
+            document.getElementById('btn-step-back').disabled = false;
+            
+            playInterval = setInterval(() => {
+                if (currentStep < allSteps.length - 1) {
+                    stepForward();
+                } else {
+                    pause();
+                    document.getElementById('btn-play').textContent = '▶️ Play';
+                }
+            }, animationSpeed);
+        }
+        
+        function pause() {
+            isPlaying = false;
+            clearInterval(playInterval);
+            document.getElementById('btn-play').textContent = '▶️ Play';
+            document.getElementById('btn-pause').disabled = true;
+            document.getElementById('btn-step-back').disabled = currentStep <= 0;
+        }
+        
+        function stepForward() {
+            if (currentStep < allSteps.length - 1) {
+                setCurrentStep(currentStep + 1);
+            }
+        }
+        
+        function stepBack() {
+            if (currentStep > 0) {
+                setCurrentStep(currentStep - 1);
+            }
+        }
+        
+        function reset() {
+            pause();
+            currentStep = -1;
+            document.getElementById('btn-play').textContent = '▶️ Play';
+            document.getElementById('btn-pause').disabled = true;
+            document.getElementById('btn-step-back').disabled = true;
+            document.getElementById('step-display').textContent = '0 / 0';
+            document.getElementById('skip-display').textContent = '0%';
+            document.getElementById('visualization-canvas').innerHTML = '<span style="color: white; text-align: center;">Chọn một thuật toán để bắt đầu</span>';
+            document.getElementById('code-display').innerHTML = '<pre><span style="color: #d4d4d4">// Chọn thuật toán từ menu bên trái để xem code</span></pre>';
+            document.getElementById('variable-tbody').innerHTML = '<tr><td colspan="2" style="text-align: center; color: #666;">Chưa có biểu thức</td></tr>';
+            document.getElementById('status-message').textContent = 'Sẵn sàng';
+            document.getElementById('status-message').className = 'status-message info';
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+        
+        function generateRandomArray(size) {
+            currentArray = Array.from({ length: size }, () => Math.floor(Math.random() * 99) + 1);
+            document.getElementById('status-message').textContent = `Đã tạo mảng ngẫu nhiên với ${size} số`;
+            document.getElementById('status-message').className = 'status-message success';
+            if (currentAlgorithm && allSteps.length > 0) {
+                reset();
+            }
+        }
+        
+        function generateCustomArray() {
+            const input = prompt('Nhập mảng số, phân tách bằng dấu phẩy (ví dụ: 5, 2, 9, 1):');
+            if (!input) return;
+            
+            try {
+                const arr = input.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+                if (arr.length === 0) {
+                    alert('Mảng không hợp lệ');
+                    return;
+                }
+                
+                currentArray = arr;
+                document.getElementById('status-message').textContent = `Đã tạo mảng tùy chỉnh: ${arr.join(', ')}`;
+                document.getElementById('status-message').className = 'status-message success';
+                if (currentAlgorithm && allSteps.length > 0) {
+                    reset();
+                }
+            } catch (e) {
+                alert('Mảng không hợp lệ');
+            }
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (isPlaying) pause();
+                else start();
+            } else if (e.code === 'ArrowRight') {
+                stepForward();
+            } else if (e.code === 'ArrowLeft') {
+                stepBack();
+            } else if (e.code === 'Home') {
+                setCurrentStep(0);
+            } else if (e.code === 'End') {
+                setCurrentStep(allSteps.length - 1);
+            }
+        });
+    </script>
+</body>
+</html>
