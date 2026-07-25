@@ -40,7 +40,7 @@ h1{font-size:1.5rem;font-weight:600}
 .viz-canvas{min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.8rem;background:var(--code-bg);border-radius:8px;overflow-x:auto}
 .viz-container{width:100%;min-height:220px;display:flex;flex-direction:column;align-items:center}
 .bar-container{display:flex;align-items:flex-end;gap:4px;margin:.6rem 0;min-height:140px}
-.bar{width:36px;min-height:18px;background:var(--secondary);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:4px 0;border-radius:4px 4px 0 0;transition:all .35s ease;position:relative}
+.bar{width:36px;min-height:18px;background:var(--secondary);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:4px 0;border-radius:4px 4px 0 0;transition:height .25s ease,background .2s ease,opacity .2s ease;position:relative}
 .bar .bar-value{font-size:.82rem;font-weight:700;margin-bottom:3px;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,.5)}
 .bar .bar-label{font-size:.7rem;color:#fff;opacity:.8}
 .bar.comparing{background:var(--warning)}
@@ -512,6 +512,7 @@ function genQueue(actions){
 function genSteps(){
   if(!algo)return;
   steps=[];curStep=-1;
+  barCache=null; recCache=null; stackCache=null; queueCache=null;
   const title={bubble:'Bubble Sort',selection:'Selection Sort',insertion:'Insertion Sort',
     linear:'Linear Search',binary:'Binary Search',factorial:'Giai thừa',fibonacci:'Fibonacci',
     hanoi:'Tháp Hà Nội',stack:'Stack (Push/Pop)',queue:'Queue (Enqueue/Dequeue)'};
@@ -538,6 +539,9 @@ function genSteps(){
   }
   updateExtraControls();
   $('stepDisp').textContent=`0/${steps.length}`;
+  // Initialize persistent DOM
+  if(steps.length&&steps[0].arr)initBars(steps[0].arr);
+  else if(algo==='hanoi'&&steps.length)initHanoi(steps[0].rods);
   setStep(0);
 }
 
@@ -601,67 +605,83 @@ function queueDeq(){
 }
 
 // ===== RENDER =====
-function renderStep(s){
-  const c=$('vizCanvas');
-  if(!s){c.innerHTML='<span style="color:#888">Không có dữ liệu</span>';return;}
-  if(s.type==='rec')renderRec(s,c);
-  else if(s.type==='hanoi')renderHanoi(s,c);
-  else if(s.type==='stack')renderStack(s,c);
-  else if(s.type==='queue')renderQueue(s,c);
-  else renderBars(s,c);
-}
+// ===== PERSISTENT DOM RENDERING =====
+let barCache = null; // {container, bars[], markers[]}
 
-function renderBars(s,c){
-  if(!s.arr||!s.arr.length){c.innerHTML='<p style="color:#888">Không có dữ liệu</p>';return;}
-  const max=Math.max(...s.arr,1);
-  let html='<div class="viz-container"><div class="bar-container">';
-  s.arr.forEach((v,i)=>{
-    let cls='bar';
-    if(s.found&&s.found.includes(i))cls+=' found';
-    else if(s.dim&&s.dim.includes(i))cls+=' dimmed';
-    else if(s.swp&&s.swp.includes(i))cls+=' swapping';
-    else if(s.cmp&&s.cmp.includes(i))cls+=' comparing';
-    else if(s.sorted&&s.sorted.includes(i))cls+=' sorted';
+function initBars(arr){
+  const c=$('vizCanvas');
+  barCache=null;
+  if(!arr||!arr.length){c.innerHTML='<p style="color:#888">Không có dữ liệu</p>';return;}
+  const max=Math.max(...arr,1);
+  let html='<div class="viz-container" id="vizCont"><div class="bar-container" id="barCont">';
+  arr.forEach((v,i)=>{
     const h=Math.max(20,Math.min(250,v/max*180));
-    let marker='';
-    if(s.markers){
-      if(s.markers.low===i)marker+=`<div style="color:#f39c12;font-size:.7rem;font-weight:700">▼low</div>`;
-      if(s.markers.mid===i)marker+=`<div style="color:#e74c3c;font-size:.7rem;font-weight:700">▼mid</div>`;
-      if(s.markers.high===i)marker+=`<div style="color:#9b59b6;font-size:.7rem;font-weight:700">▼high</div>`;
-    }
-    html+=`<div class="${cls}" style="height:${h}px"><div class="bar-value">${v}</div><div class="bar-label">[${i}]</div>${marker}</div>`;
+    html+=`<div class="bar" data-idx="${i}" style="height:${h}px">
+      <div class="bar-value">${v}</div><div class="bar-label">[${i}]</div>
+      <div class="bar-marker" style="position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:.65rem;font-weight:700;pointer-events:none"></div>
+    </div>`;
   });
   html+='</div></div>';
   c.innerHTML=html;
+  const bars=document.querySelectorAll('#barCont .bar');
+  barCache={container:$('barCont'),bars:Array.from(bars)};
 }
 
-function renderRec(s,c){
-  const calls=steps.filter(st=>st.type==='rec').reduce((acc,st)=>{
-    if(!acc.find(x=>x.id===st.id))acc.push(st);return acc;
-  },[]);
-  const activeId=s.id;
-  // Build tree structure
-  const tree={};
-  calls.forEach(st=>{
-    if(!tree[st.id])tree[st.id]=st;
+function updateBars(s){
+  if(!barCache||!barCache.bars.length){
+    if(s.arr&&s.arr.length)initBars(s.arr);
+    else return;
+  }
+  const max=Math.max(...s.arr,1);
+  barCache.bars.forEach((bar,i)=>{
+    const v=s.arr[i];
+    if(v===undefined)return;
+    const h=Math.max(20,Math.min(250,v/max*180));
+    bar.style.height=h+'px';
+    bar.querySelector('.bar-value').textContent=v;
+    // Update classes
+    bar.className='bar';
+    if(s.found&&s.found.includes(i))bar.classList.add('found');
+    else if(s.dim&&s.dim.includes(i))bar.classList.add('dimmed');
+    else if(s.swp&&s.swp.includes(i))bar.classList.add('swapping');
+    else if(s.cmp&&s.cmp.includes(i))bar.classList.add('comparing');
+    else if(s.sorted&&s.sorted.includes(i))bar.classList.add('sorted');
+    // Update markers
+    const marker=bar.querySelector('.bar-marker');
+    marker.innerHTML='';
+    if(s.markers){
+      if(s.markers.low===i)marker.innerHTML='<span style="color:#f39c12">▼low</span>';
+      if(s.markers.mid===i)marker.innerHTML+='<span style="color:#e74c3c">▼mid</span>';
+      if(s.markers.high===i)marker.innerHTML+='<span style="color:#9b59b6">▼high</span>';
+    }
   });
-  // Only show up to current step
+}
+
+let recCache=null;
+function initRec(){
+  recCache={lastSteps:new Set()};
+}
+function updateRec(s,c){
+  const calls=[];
+  const seen=new Set();
+  steps.forEach(st=>{
+    if(st.type==='rec'&&!seen.has(st.id)){seen.add(st.id);calls.push(st);}
+  });
   const upTo=steps.indexOf(s);
   const shown=calls.filter(st=>steps.indexOf(st)<=upTo);
-  // Render as flat indented list for simplicity
   let html='<div class="tree-container"><div class="tree">';
   shown.forEach(st=>{
     const pad=st.level*20;
     let cls='tree-node';
     if(st.active==='return')cls+=' done';
-    else if(st.id===activeId)cls+=' active';
+    else if(st.id===s.id)cls+=' active';
     let label=st.call;
     if(st.result!==undefined)label+=` = ${st.result}`;
     html+=`<div style="margin-left:${pad}px;display:flex;align-items:center;gap:4px">`;
     if(st.level>0)html+=`<div style="width:20px;height:2px;background:#888"></div>`;
     html+=`<div class="${cls}">${label}</div>`;
     if(st.active==='return')html+=`<span style="color:var(--success);font-size:.75rem">✓</span>`;
-    else if(st.id===activeId&&st.active!=='return')html+=`<span style="color:var(--accent);font-size:.75rem">▶</span>`;
+    else if(st.id===s.id&&st.active!=='return')html+=`<span style="color:var(--accent);font-size:.75rem">▶</span>`;
     html+=`</div>`;
   });
   html+='</div></div>';
@@ -669,36 +689,65 @@ function renderRec(s,c){
   $('statusMsg').textContent=s.msg;
 }
 
-function renderHanoi(s,c){
+let hanoiCache=null;
+function initHanoi(rods){
+  const c=$('vizCanvas');
   const labels=['A','B','C'];
-  let html='<div class="hanoi-area">';
-  s.rods.forEach((rod,ri)=>{
-    html+=`<div class="pole"><div class="pole-stack"><div class="pole-rod"></div>`;
-    rod.forEach((d,di)=>{
+  let html='<div class="hanoi-area" id="hanoiArea">';
+  rods.forEach((rod,ri)=>{
+    html+=`<div class="pole"><div class="pole-stack"><div class="pole-rod"></div><div class="disks-cont" data-rod="${ri}">`;
+    rod.forEach(d=>{
       const w=40+d*12;
       const colors=['#e74c3c','#3498db','#27ae60','#f39c12','#9b59b6','#1abc9c','#e67e22','#2ecc71'];
       html+=`<div class="disk" style="width:${w}px;background:${colors[(d-1)%colors.length]}">${d}</div>`;
     });
-    html+=`</div><div class="pole-label">${labels[ri]}</div></div>`;
+    html+=`</div></div><div class="pole-label">${labels[ri]}</div></div>`;
   });
-  html+='</div>';
-  if(s.move){
-    const from=String.fromCharCode(65+s.move.from);
-    const to=String.fromCharCode(65+s.move.to);
-    html+=`<div style="color:var(--accent);font-weight:600;font-size:.9rem;margin-top:.5rem">➡️ Đĩa ${s.move.disk}: ${from} → ${to}</div>`;
-  }
+  html+='</div><div id="hanoiMsg"></div>';
   c.innerHTML=html;
 }
 
-function renderStack(s,c){
+function updateHanoi(s){
+  const labels=['A','B','C'];
+  s.rods.forEach((rod,ri)=>{
+    const cont=document.querySelector(`.disks-cont[data-rod="${ri}"]`);
+    if(!cont)return;
+    const colors=['#e74c3c','#3498db','#27ae60','#f39c12','#9b59b6','#1abc9c','#e67e22','#2ecc71'];
+    // Check if disks changed
+    const existing=cont.querySelectorAll('.disk');
+    // Simple: rebuild rod content if count changed
+    if(existing.length!==rod.length){
+      cont.innerHTML=rod.map(d=>{
+        const w=40+d*12;
+        return `<div class="disk" style="width:${w}px;background:${colors[(d-1)%colors.length]}">${d}</div>`;
+      }).join('');
+    }else{
+      rod.forEach((d,i)=>{
+        if(existing[i])existing[i].textContent=d;
+      });
+    }
+  });
+  const msg=$('hanoiMsg');
+  if(s.move){
+    const from=String.fromCharCode(65+s.move.from);
+    const to=String.fromCharCode(65+s.move.to);
+    msg.innerHTML=`<div style="color:var(--accent);font-weight:600;font-size:.9rem;margin-top:.5rem">➡️ Đĩa ${s.move.disk}: ${from} → ${to}</div>`;
+  }else{msg.innerHTML='';}
+  $('statusMsg').textContent=s.msg;
+}
+
+let stackCache=null;
+function initStack(){
+  stackCache=null;
+}
+function updateStack(s,c){
   let html='<div class="viz-container"><div style="font-weight:600;color:var(--secondary);margin-bottom:.5rem">STACK</div>';
   if(!s.stack||!s.stack.length){
     html+='<div style="color:#888;padding:1rem">Stack rỗng</div>';
   }else{
-    let tmp=[...s.stack];
-    while(tmp.length){
-      const v=tmp.pop();
-      const isNew=s.op==='push'&&tmp.length===s.stack.length-2;
+    for(let idx=s.stack.length-1;idx>=0;idx--){
+      const v=s.stack[idx];
+      const isNew=s.op==='push'&&idx===s.stack.length-1;
       html+=`<div class="stack-block" style="${isNew?'background:var(--success);transform:scale(1.05)':''}">${v}</div>`;
     }
   }
@@ -707,15 +756,18 @@ function renderStack(s,c){
   c.innerHTML=html;
 }
 
-function renderQueue(s,c){
+let queueCache=null;
+function initQueue(){
+  queueCache=null;
+}
+function updateQueue(s,c){
   let html='<div class="viz-container"><div style="font-weight:600;color:var(--secondary);margin-bottom:.5rem">QUEUE</div><div class="queue-row">';
   if(!s.queue||!s.queue.length){
     html+='<div style="color:#888">Queue rỗng</div>';
   }else{
     s.queue.forEach((v,i)=>{
       const isNew=s.op==='enqueue'&&i===s.queue.length-1;
-      const isRemoved=s.op==='dequeue';
-      html+=`<div class="queue-item ${isNew?'bar.comparing':''}" style="${isNew?'background:var(--success);transform:scale(1.1)':''}">
+      html+=`<div class="queue-item" style="${isNew?'background:var(--success);transform:scale(1.1)':''}">
         <span class="qidx">${i}</span>${v}</div>`;
     });
   }
@@ -724,6 +776,16 @@ function renderQueue(s,c){
   html+=`<span style="font-size:.75rem;color:#888">rear →</span>`;
   html+='</div></div>';
   c.innerHTML=html;
+}
+
+function renderStep(s){
+  const c=$('vizCanvas');
+  if(!s){c.innerHTML='<span style="color:#888">—</span>';return;}
+  if(s.type==='rec')updateRec(s,c);
+  else if(s.type==='hanoi')updateHanoi(s);
+  else if(s.type==='stack')updateStack(s,c);
+  else if(s.type==='queue')updateQueue(s,c);
+  else updateBars(s);
 }
 
 // ===== STEP CONTROL =====
@@ -773,6 +835,7 @@ function pause(){
 
 function resetAll(){
   pause();curStep=-1;
+  barCache=null; recCache=null; stackCache=null; queueCache=null;
   $('stepDisp').textContent='0/0';$('bp').textContent='▶ Play';
   $('bpause').disabled=true;$('bback').disabled=true;
   $('vizCanvas').innerHTML='<span style="color:#888">Sẵn sàng</span>';
@@ -786,7 +849,7 @@ function genRandom(n){
   arr=Array.from({length:n},()=>Math.floor(Math.random()*49)+1);
   $('statusMsg').textContent=`📊 Mảng ngẫu nhiên ${n} phần tử: [${arr.join(',')}]`;
   $('statusMsg').className='status-msg success';
-  if(algo&&steps.length)resetAll();
+  if(algo&&steps.length){resetAll();genSteps();}
 }
 
 function customArray(){
@@ -797,7 +860,7 @@ function customArray(){
   arr=a;
   $('statusMsg').textContent=`📝 Mảng: [${arr.join(',')}]`;
   $('statusMsg').className='status-msg success';
-  if(algo&&steps.length)resetAll();
+  if(algo&&steps.length){resetAll();genSteps();}
 }
 
 function updSpd(){
